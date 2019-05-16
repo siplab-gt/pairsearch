@@ -1,12 +1,12 @@
+import time
+from active_search import KNormalizationType, pair2hyperplane
+from enum import Enum
+import scipy as sp
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import cvxopt as cvx
 cvx.solvers.options['show_progress'] = False
-import scipy as sp
-from enum import Enum
-from active_search import KNormalizationType, pair2hyperplane
-import time
 
 """
 Active pairwise ranking, as in Jamieson & Nowak 2011 (see README)
@@ -25,7 +25,7 @@ class ActRankQ():
     - getStats: returns stats on ActRankQ result
     """
 
-    def initialize(self, embedding, nvotes=1, bounds=np.array([-1,1]), ref=None,
+    def initialize(self, embedding, nvotes=1, bounds=np.array([-1, 1]), ref=None,
                    plot=False, debug=False, pause_len=2):
         """
         arguments:
@@ -47,29 +47,29 @@ class ActRankQ():
         self.nvotes = nvotes
         self.debug = debug
         self.indices = np.random.choice(list(range(len(embedding))),
-            len(embedding),replace=False)
+                                        len(embedding), replace=False)
         d = embedding.shape[1]
-        A = np.empty((0,d))
+        A = np.empty((0, d))
         b = np.empty((0,))
 
         for i in range(d):
-            a0 = np.zeros((1,d))
-            a0[0,i] = -1
+            a0 = np.zeros((1, d))
+            a0[0, i] = -1
 
-            A = np.vstack((A,a0))
-            b = np.append(b,-lb)
+            A = np.vstack((A, a0))
+            b = np.append(b, -lb)
 
-            a0 = np.zeros((1,d))
-            a0[0,i] = 1
+            a0 = np.zeros((1, d))
+            a0[0, i] = 1
 
-            A = np.vstack((A,a0))
-            b = np.append(b,ub)
+            A = np.vstack((A, a0))
+            b = np.append(b, ub)
 
         if plot:
-            self.feasible_region = FeasibleRegion(A=A,b=b,figure_handle=243,
-                ref=ref,xrange=(lb,ub),yrange=(lb,ub),pause_len=pause_len)
+            self.feasible_region = FeasibleRegion(A=A, b=b, figure_handle=243,
+                                                  ref=ref, xrange=(lb, ub), yrange=(lb, ub), pause_len=pause_len)
         else:
-            self.feasible_region = FeasibleRegion(A=A,b=b)
+            self.feasible_region = FeasibleRegion(A=A, b=b)
 
         self.oracle_queries_made = []
         self.y_vec = []
@@ -84,14 +84,14 @@ class ActRankQ():
         self.buffer_estimate = self.feasible_region.chebyshev_center()[0]
         self.t = time.time()
 
-    def getQuery(self,oracle):
+    def getQuery(self, oracle):
         """
         selects pair for ranking
 
         arguments:
             oracle: function accepting two indices i,j and returning
                 sorted pair
-                
+
                 arguments:
                     p: tuple (i,j) of query pair
                 output: dict with key 'y' where y=1 selects p[0], y=0 selects
@@ -114,38 +114,38 @@ class ActRankQ():
 
                 if self.acquired_votes == 0:
                     ambiguity_test = self.feasible_region.ambiguous(
-                        self.embedding,i,j)
+                        self.embedding, i, j)
                 else:
                     ambiguity_test = 0
 
                 if ambiguity_test == 0:
                     self.ambiguous_q += 1
-                    p = (i,j)
+                    p = (i, j)
                     oracle_out = oracle(p)
                     y = oracle_out['y']
                     self.y_vec.append(y)
 
                     if self.debug:
-                        print('pair:{}, y:{}'.format(p,y))
+                        print('pair:{}, y:{}'.format(p, y))
 
-                    closest,farthest = p[1-y],p[y]
+                    closest, farthest = p[1-y], p[y]
                     self.oracle_queries_made.append(p)
 
                     self.acquired_votes = ((self.acquired_votes + 1) %
-                        self.nvotes)
+                                           self.nvotes)
 
                     if self.acquired_votes > 0:
-                        return p,oracle_out
+                        return p, oracle_out
 
                     y_total = sum(self.y_vec[-self.nvotes:])
                     if y_total == self.nvotes / 2:
-                        y = np.random.binomial(1,0.5)
+                        y = np.random.binomial(1, 0.5)
                     else:
                         y = int(y_total > self.nvotes / 2)
-                    closest,farthest = p[1-y],p[y]
+                    closest, farthest = p[1-y], p[y]
 
                     self.feasible_region.append(self.embedding, closest,
-                        farthest)
+                                                farthest)
                     self.buffer_estimate = (
                         self.feasible_region.chebyshev_center()[0])
 
@@ -163,27 +163,27 @@ class ActRankQ():
                     self.ins = m
 
                 if do_return:
-                    return p,oracle_out
+                    return p, oracle_out
 
-            self.total_ranking.insert(self.ins,i)
+            self.total_ranking.insert(self.ins, i)
             self.L = 0
             self.R = len(self.total_ranking)-1
 
             if self.debug:
                 if (self.idx+1) % 50 == 0:
                     print("    Inserted index {} / {} in {:.4f} s".
-                    format(self.idx+1,len(self.indices),time.time()-self.t))
+                          format(self.idx+1, len(self.indices), time.time()-self.t))
 
             self.idx += 1
 
-        return None,None
+        return None, None
 
     def getStats(self):
         """
         Returns stats on ActRankQ result
         """
         return (self.oracle_queries_made, self.total_ranking,
-        self.ambiguous_q, self.total_q)
+                self.ambiguous_q, self.total_q)
 
     def getEstimate(self):
         """
@@ -199,14 +199,14 @@ class FeasibleRegion():
     Ax <= b.
     """
 
-    def __init__(self,A=None,b=None,figure_handle=None,ref=None,
-                 xrange=(0.0,1.0),yrange=(0.0,1.0),pause_len = 2):
+    def __init__(self, A=None, b=None, figure_handle=None, ref=None,
+                 xrange=(0.0, 1.0), yrange=(0.0, 1.0), pause_len=2):
         self.figure_handle = figure_handle
         self.ref = ref
         self.xrange = xrange
         self.yrange = yrange
         self.res = 10
-        self.t = np.linspace(self.xrange[0],self.xrange[1],self.res)
+        self.t = np.linspace(self.xrange[0], self.xrange[1], self.res)
         self.pause_len = pause_len
         self.A = A
         self.b = b
@@ -237,18 +237,18 @@ class FeasibleRegion():
             xc: Chebyshev center
             R: depth of xc
         """
-        norm_vector = np.reshape(np.linalg.norm(self.A,axis=1),
-            (self.A.shape[0],1))
+        norm_vector = np.reshape(np.linalg.norm(self.A, axis=1),
+                                 (self.A.shape[0], 1))
         A_ub = np.vstack((
-                np.hstack((self.A,norm_vector)),
-                np.hstack((np.zeros(self.A.shape[1]),-1))
-                ))
-        b_ub = np.append(self.b,0)
+            np.hstack((self.A, norm_vector)),
+            np.hstack((np.zeros(self.A.shape[1]), -1))
+        ))
+        b_ub = np.append(self.b, 0)
 
         c = np.zeros((self.A.shape[1]+1,))
         c[-1] = -1
 
-        z,_ = cvxlp(c,A_ub,b_ub)
+        z, _ = cvxlp(c, A_ub, b_ub)
         #res = so.linprog(c, A_ub = A_ub, b_ub = b_ub)
 
         if z is not None:
@@ -258,7 +258,7 @@ class FeasibleRegion():
             xc = None
             R = None
 
-        return xc,R
+        return xc, R
 
     def ambiguous(self, embedding, i, j):
         """
@@ -277,13 +277,13 @@ class FeasibleRegion():
             return 0
 
         normal, bias, _ = self.separator(embedding[i], embedding[j])
-        iflag = self.intersects(self.A,self.b,normal,bias)
+        iflag = self.intersects(self.A, self.b, normal, bias)
 
-        (xc,R) = self.chebyshev_center()
+        (xc, R) = self.chebyshev_center()
 
         if self.figure_handle is not None and self.A.shape[1] == 2:
 
-            color = 'g' if iflag==0 else 'r'
+            color = 'g' if iflag == 0 else 'r'
 
             cseq = ['k']*embedding.shape[0]
             cseq[i] = color
@@ -292,20 +292,20 @@ class FeasibleRegion():
             plt.figure(self.figure_handle)
             plt.clf()
 
-            plt.scatter(embedding[:,0],embedding[:,1],s=25,c=cseq)
+            plt.scatter(embedding[:, 0], embedding[:, 1], s=25, c=cseq)
 
             if self.ref is not None:
-                plt.scatter(self.ref[0],self.ref[1],s=50,c='b',marker='*')
+                plt.scatter(self.ref[0], self.ref[1], s=50, c='b', marker='*')
 
             for ii in range(self.A.shape[0]):
-                a = self.A[ii,:]
+                a = self.A[ii, :]
                 b = self.b[ii]
-                plt.plot(self.t,(b-a[0]*self.t)/(a[1]+1e-10),'b')
+                plt.plot(self.t, (b-a[0]*self.t)/(a[1]+1e-10), 'b')
 
-            plt.plot(self.t,(bias-normal[0]*self.t)/(normal[1]+1e-10),color)
-            plt.scatter(xc[0],xc[1],s=50,c='c',marker='x')
+            plt.plot(self.t, (bias-normal[0]*self.t)/(normal[1]+1e-10), color)
+            plt.scatter(xc[0], xc[1], s=50, c='c', marker='x')
 
-            circle = Circle(xc,radius=R,alpha=0.3,color='c')
+            circle = Circle(xc, radius=R, alpha=0.3, color='c')
 
             ax = plt.gca()
             ax.add_patch(circle)
@@ -318,7 +318,7 @@ class FeasibleRegion():
 
         return iflag
 
-    def intersects(self,A,b,a_test,b_test):
+    def intersects(self, A, b, a_test, b_test):
         """
         given polytope defined by Ax <= b for m x n numpy array A and length-n
         numpy vector b (denoted by set P), returns 0 if a_test^T x = b_test
@@ -330,10 +330,10 @@ class FeasibleRegion():
         bounded, non-empty set
         """
 
-        _,stat1 = cvxlp(c=np.zeros(A.shape[1]),A_ub=np.vstack((A,a_test)),
-            b_ub=np.append(b,b_test))
-        _,stat2 = cvxlp(c=np.zeros(A.shape[1]),A_ub=np.vstack((A,-a_test)),
-            b_ub=np.append(b,-b_test))
+        _, stat1 = cvxlp(c=np.zeros(A.shape[1]), A_ub=np.vstack((A, a_test)),
+                         b_ub=np.append(b, b_test))
+        _, stat2 = cvxlp(c=np.zeros(A.shape[1]), A_ub=np.vstack((A, -a_test)),
+                         b_ub=np.append(b, -b_test))
 
         suc1 = (stat1 == 'optimal')
         suc2 = (stat2 == 'optimal')
@@ -374,20 +374,20 @@ class FeasibleRegion():
             where rank_i < rank_j
         return: self for posterity
         """
-        normal, bias, midpoint = self.separator(embedding[j],embedding[i])
+        normal, bias, midpoint = self.separator(embedding[j], embedding[i])
 
         # assert that added constraints be consistent with existing ones
         assert np.sign(np.dot(embedding[i] - midpoint, normal)) == np.sign(1)
 
         if self.A is None:
-            self.A = np.empty((0,len(normal)))
+            self.A = np.empty((0, len(normal)))
             self.b = np.empty((0,))
 
-        self.A = np.vstack((self.A,-normal))
-        self.b = np.append(self.b,-bias)
+        self.A = np.vstack((self.A, -normal))
+        self.b = np.append(self.b, -bias)
 
 
-def cvxlp(c=None,A_ub=None,b_ub=None):
+def cvxlp(c=None, A_ub=None, b_ub=None):
     """
     solves the following linear program
     min_x c^T x
@@ -400,9 +400,9 @@ def cvxlp(c=None,A_ub=None,b_ub=None):
 
     c_cvx = cvx.matrix(c)
     A_cvx = cvx.matrix(A_ub.astype(np.double))
-    b_cvx = cvx.matrix(b_ub.astype(np.double).reshape((b_ub.size,1)))
+    b_cvx = cvx.matrix(b_ub.astype(np.double).reshape((b_ub.size, 1)))
 
-    sol = cvx.solvers.lp(c_cvx,A_cvx,b_cvx)
+    sol = cvx.solvers.lp(c_cvx, A_cvx, b_cvx)
     if sol['x'] is not None:
         x_opt = np.array(sol['x'])
         x_opt = x_opt.flatten()
@@ -417,6 +417,7 @@ class NoiseModel(Enum):
     BT = 0
     NONE = 1
 
+
 def main():
     """
     Example usage of ActRankQ:
@@ -427,25 +428,25 @@ def main():
     - get paired comparison queries
     """
 
-    N = 100 # number of items
-    d = 2 # embedding dimension
-    max_query = 100 # number of queries to ask
-    nvotes = 1 # number of votes in ActRankQ
+    N = 100  # number of items
+    d = 2  # embedding dimension
+    max_query = 100  # number of queries to ask
+    nvotes = 1  # number of votes in ActRankQ
 
-    embedding = np.random.randn(N, d) # generate embedding
+    embedding = np.random.randn(N, d)  # generate embedding
 
     print("Search points: ")
     print(embedding)
 
-    bounds = np.array([-1,1]) # define user point prior
-    ref = np.random.uniform(bounds[0], bounds[1], (d,1))
+    bounds = np.array([-1, 1])  # define user point prior
+    ref = np.random.uniform(bounds[0], bounds[1], (d, 1))
 
     print("Reference point: ")
     print(ref)
 
-    k = 10 # specify noise constant value
-    k_normalization = KNormalizationType.CONSTANT # specify noise constant type
-    noise_model = NoiseModel.NONE # specify noise model
+    k = 10  # specify noise constant value
+    k_normalization = KNormalizationType.CONSTANT  # specify noise constant type
+    noise_model = NoiseModel.NONE  # specify noise model
 
     def oracle(p):
         # if y=1, then p[0] selected
@@ -458,24 +459,24 @@ def main():
         else:
             y = int(z > 0)
 
-        return {'y':y,'z':z,'a':a,'tau':tau}
+        return {'y': y, 'z': z, 'a': a, 'tau': tau}
 
     correct_ranking = sorted(range(len(embedding)), key=lambda x:
-        np.linalg.norm(embedding[x] - ref.T))
+                             np.linalg.norm(embedding[x] - ref.T))
 
-    ranker = ActRankQ() # construct ranker
+    ranker = ActRankQ()  # construct ranker
     ranker.initialize(embedding, nvotes, bounds=bounds,
-        ref=ref, plot=False, debug=True, pause_len=0.01) # initialize ranker
+                      ref=ref, plot=False, debug=True, pause_len=0.01)  # initialize ranker
 
     queries_made = 0
     while queries_made < max_query:
-        query,response = ranker.getQuery(oracle) # get query, pass oracle
+        query, response = ranker.getQuery(oracle)  # get query, pass oracle
 
         if query is None:
             break
 
         queries_made += 1
-        print('# queries made: {} / {}'.format(queries_made,max_query))
+        print('# queries made: {} / {}'.format(queries_made, max_query))
 
     # get stats from ranker, including learned ranking of items
     oracle_queries, full_ranking, ambiguous_q, total_q = ranker.getStats()
@@ -485,7 +486,15 @@ def main():
     print("Oracle was asked {} out of {} considered queries.".format(
         len(oracle_queries), total_q))
     print("Ordering correctness: ",
-        np.array_equal(correct_ranking, full_ranking))
+          np.array_equal(correct_ranking, full_ranking))
+
+    user_estimate = ranker.getEstimate()
+    print("Estimated user point: ")
+    print(user_estimate)
+
+    err = user_estimate - ref.squeeze()
+    print("Error: ")
+    print(err)
 
 
 if __name__ == '__main__':
