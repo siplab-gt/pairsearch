@@ -16,3 +16,8 @@ Suppose that we wish to estimate a user's preference vector w from paired compar
 ## Code
 - `active_search.py`: module for proposed InfoGain, EPMV, and MCMV search methods.
 - `actrankq.py`: module for ActRankQ, our implementation of an [active ranking baseline](https://papers.nips.cc/paper/4427-active-ranking-using-pairwise-comparisons.pdf).
+- `run_experiments.py`: script to run paper experiments.
+- `process_embedding.py`: script to estimate noise constant and embedding scaling from embedding file  
+  
+  
+Send correspondence to Greg Canal (gregory.canal@gatech.edu) and Andrew Massimino (massimino@gatech.edu)

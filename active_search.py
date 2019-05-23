@@ -83,8 +83,9 @@ class ActiveSearcher():
                 plot_pause: pause time between plots, in seconds
                 scale_to_embedding: if True, scale plot to embedding
                 ref: np.array - d x 1 user point vector
-                lambda_pen_MCMV: lambda penalty for MCMV method
-                lambda_pen_EPMV: lambda penalty for EPMV method
+                
+            lambda_pen_MCMV: lambda penalty for MCMV method
+            lambda_pen_EPMV: lambda penalty for EPMV method
         """
 
         self.embedding = embedding
@@ -296,6 +297,8 @@ class ActiveSearcher():
         return self.mu_W
 
     def evaluate_pair(self, a, tau, W_samples, k):
+        # estimates mutual information of input pair
+
         # mutual information heuristic, larger is better
         # NOTE: each row of W_samples is a sample
         Lik = self.likelihood_vec(a, tau, W_samples, k)
@@ -307,21 +310,26 @@ class ActiveSearcher():
         return mutual_info
 
     def likelihood_vec(self, a, tau, W, k):
+        # mutual information support function
+
         # a: (3,) tau: (1,) W: (1000, 3)
         z = np.dot(W, a) - tau  # broadcasting
         return sp.special.expit(k * z)
 
+    def binary_entropy(self, x):
+        # mutual information support function
+        return -(sc.xlogy(x, x) + sc.xlog1py(1 - x, -x))/np.log(2)
+
     def get_random_pairs(self, N, M):
+        # pair selection support function
         indices = np.random.choice(N, (int(1.5*M), 2))
         indices = [(i[0], i[1]) for i in indices if i[0] != i[1]]
         assert len(indices) >= M
         return indices[0:M]
 
-    def binary_entropy(self, x):
-        return -(sc.xlogy(x, x) + sc.xlog1py(1 - x, -x))/np.log(2)
-
 
 class AdaptType(Enum):
+    # enumerate experiment types
     RANDOM = 0
     INFOGAIN = 1
     MCMV = 2
@@ -330,17 +338,20 @@ class AdaptType(Enum):
 
 
 class KNormalizationType(Enum):
+    # enumerate noise constant ytpes
     CONSTANT = 0
     NORMALIZED = 1
     DECAYING = 2
 
 
 class NoiseModel(Enum):
+    # enumerate noise model types
     BT = 0
     NONE = 1
 
 
 def pair2hyperplane(p, embedding, normalization, slice_point=None):
+    # converts pair to hyperplane weights and bias
     A_emb = 2*(embedding[p[0], :] - embedding[p[1], :])
 
     if slice_point is None:
@@ -371,17 +382,18 @@ def main():
     - defines oracle
     - initalize search object
     - get paired comparison queries
+    - get user point estimate
     """
 
-    N = 100
-    d = 2
-    max_query = 50
+    N = 100  # number of items
+    d = 2  # embedding dimension
+    max_query = 100  # number of queries to ask
 
-    embedding = np.random.randn(N, d)
-    k = 10
-    k_normalization = KNormalizationType.NORMALIZED
-    noise_model = NoiseModel.NONE
-    method = AdaptType.MCMV
+    embedding = np.random.randn(N, d)  # generate embedding
+    k = 10  # specify noise constant value
+    k_normalization = KNormalizationType.NORMALIZED  # specify noise constant type
+    noise_model = NoiseModel.NONE  # specify noise model
+    method = AdaptType.MCMV  # specify search method
 
     def oracle(p):
         # if y=1, then p[0] selected
@@ -399,19 +411,24 @@ def main():
     print("Search points: ")
     print(embedding)
 
-    bounds = [-1, 1]
+    bounds = [-1, 1]  # define user point prior
     ref = np.random.uniform(bounds[0], bounds[1], (d, 1))
 
     print("Reference point: ")
     print(ref)
 
+    # construct searcher
     searcher = ActiveSearcher()
+
+    # inialize searcher
     searcher.initialize(embedding, k, k_normalization, method,
                         pair_sample_rate=10**-3, plotting=False, ref=ref,
                         scale_to_embedding=True)
 
     queries_made = 0
     while queries_made < max_query:
+
+        # get query, pass oracle
         query, response = searcher.getQuery(oracle)
 
         if query is None:
@@ -420,6 +437,7 @@ def main():
         queries_made += 1
         print('# queries made: {} / {}'.format(queries_made, max_query))
 
+    # get user point estimate
     user_estimate = searcher.getEstimate()
     print("Estimated user point: ")
     print(user_estimate)

@@ -218,8 +218,7 @@ class FeasibleRegion():
         """
         Calculates the Chebyshev center of the current feasible region polytope.
         See S. Boyd, L. Vandenberghe, Convex Optimization. Code inspired from:
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.
-        HalfspaceIntersection.html
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.HalfspaceIntersection.html
 
         solves the following linear program (norm indicates Euclidean norm):
 
@@ -426,6 +425,7 @@ def main():
     - defines oracle
     - initalize ranking object
     - get paired comparison queries
+    - get user point estimate
     """
 
     N = 100  # number of items
@@ -488,6 +488,7 @@ def main():
     print("Ordering correctness: ",
           np.array_equal(correct_ranking, full_ranking))
 
+    # get user point estimate
     user_estimate = ranker.getEstimate()
     print("Estimated user point: ")
     print(user_estimate)
