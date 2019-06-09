@@ -9,7 +9,7 @@ Suppose that we wish to estimate a user's preference vector w from paired compar
 
 ## Requirements
 
-### Packages
+### Packages (python)
 - [Python 3](https://www.python.org/downloads/)
 - [NumPy](https://www.numpy.org/)
 - [SciPy](https://www.scipy.org/)
@@ -28,10 +28,15 @@ pre-process an embedding using `process_embedding.py` it is necessary to
 have the Food-10k dataset of triplets.  This dataset may be obtained from
 the [SE(3) Computer Vision Group at Cornell Tech](https://vision.cornell.edu/se3/concept-embeddings/).
 
+### Packages (MATLAB only for Enusvm/GaussCloud method baseline)
+- [CVX](cvxr.com/cvx/)
+
 ## Code
 - `active_search.py`: module for proposed InfoGain, EPMV, and MCMV search methods.
 - `actrankq.py`: module for ActRankQ, our implementation of an [active ranking baseline](https://papers.nips.cc/paper/4427-active-ranking-using-pairwise-comparisons.pdf).
 - `run_experiments.py`: script to run paper experiments.
 - `process_embedding.py`: script to estimate noise constant and embedding scaling from embedding file
+- `make-embedding/*.py`: scripts to generate embedding from human intelligence task sourced triplets.
+- `enusvm/*.m`: implementation and simulation for the "GaussCloud" [baseline method](https://arxiv.org/abs/1802.10489).
 
 Please send correspondence to Greg Canal (gregory.canal@gatech.edu) and Andrew Massimino (massimino@gatech.edu)
