@@ -39,4 +39,4 @@ the [SE(3) Computer Vision Group at Cornell Tech](https://vision.cornell.edu/se3
 - `make-embedding/*.py`: scripts to generate embedding from human intelligence task sourced triplets.
 - `enusvm/*.m`: implementation and simulation for the "GaussCloud" [baseline method](https://arxiv.org/abs/1802.10489).
 
-Please send correspondence to Greg Canal (gregory.canal@gatech.edu) and Andrew Massimino (massimino@gatech.edu)
+Please send correspondence to Greg Canal (gcanal@wisc.edu) and Andrew Massimino (massimino@gatech.edu)
